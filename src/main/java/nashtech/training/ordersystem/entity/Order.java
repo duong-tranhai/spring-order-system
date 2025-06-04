@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "orders")
@@ -20,24 +22,40 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    private User user;
+    @Column(nullable = false)
+    private LocalDateTime orderDate;
 
-    @ManyToOne
-    private User seller;
+    @PrePersist
+    public void prePersist() {
+        orderDate = LocalDateTime.now();
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItem> items;
+    @ManyToOne(optional = false)
+    private User customer;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    @ManyToMany
+    @JoinTable(
+            name = "order_products",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    private Set<Product> products = new HashSet<>();
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
+    private Double totalAmount;
+
+    private String shippingAddress;
+
+    private String paymentStatus;
+
+    private boolean returnRequested = false;
+
+    private boolean returnApproved = false;
+
+    public boolean isReturnEligible() {
+        return false;
     }
 }

@@ -20,13 +20,6 @@ public class ProductController {
         this.productService = svc;
     }
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
-    public ResponseEntity<ProductResponseDTO> createProduct(@Valid @RequestBody ProductRequestDTO dto) {
-        ProductResponseDTO product = productService.createProduct(dto);
-        return ResponseEntity.status(201).body(product);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Product> listProduct(@PathVariable Long id,
                                                @Valid ProductRequestDTO dto) {
@@ -45,5 +38,13 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/discount")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<ProductResponseDTO> applyDiscount(@PathVariable Long id,
+                                                            @RequestParam("discountPercentage") double discountPercentage) {
+        ProductResponseDTO updatedProduct = productService.applyDiscount(id, discountPercentage);
+        return ResponseEntity.ok(updatedProduct);
     }
 }
