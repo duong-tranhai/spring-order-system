@@ -4,6 +4,6 @@ public record ProductResponseDTO(
         Long id,
         String name,
         String description,
-        int stock,
-        double price
+        Integer stock,
+        Double price
 ) {}

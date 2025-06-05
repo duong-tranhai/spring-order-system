@@ -29,7 +29,7 @@ public class AuthenticationService {
         User user = new User();
         user.setUsername(request.username());
         user.setPassword(passwordEncoder.encode(request.password()));
-        user.setRoles(Set.of("ROLE_CUSTOMER")); // default role
+        user.setRoles(Set.of("CUSTOMER")); // default role
         userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(user.getUsername());

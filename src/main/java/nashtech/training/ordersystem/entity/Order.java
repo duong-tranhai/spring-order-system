@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "system_orders")
+@Table(name = "orders")
 @Getter
 @Setter
 @NoArgsConstructor

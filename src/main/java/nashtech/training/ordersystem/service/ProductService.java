@@ -19,6 +19,10 @@ public class ProductService {
 
     public ProductResponseDTO createProduct(ProductRequestDTO dto) {
         Product p = new Product();
+        p.setName(dto.name());
+        p.setStock(dto.stock());
+        p.setPrice(dto.price());
+        p.setDescription(dto.description());
         Product saved = productRepository.save(p);
         return toResponseDTO(saved);
     }

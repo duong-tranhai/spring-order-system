@@ -2,6 +2,7 @@ package nashtech.training.ordersystem.controller;
 
 import nashtech.training.ordersystem.dto.ProductRequestDTO;
 import nashtech.training.ordersystem.dto.ProductResponseDTO;
+import nashtech.training.ordersystem.entity.Product;
 import nashtech.training.ordersystem.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -26,9 +27,10 @@ public class ProductController {
         return ResponseEntity.status(201).body(product);
     }
 
-    @GetMapping
-    public ResponseEntity<List<ProductResponseDTO>> listProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> listProduct(@PathVariable Long id,
+                                               @Valid ProductRequestDTO dto) {
+        return ResponseEntity.ok(productService.getProductById(id));
     }
 
     @PutMapping("/{id}")
