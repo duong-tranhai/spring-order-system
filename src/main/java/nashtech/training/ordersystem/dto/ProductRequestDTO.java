@@ -4,5 +4,6 @@ public record ProductRequestDTO(
         String name,
         String description,
         Integer stock,
-        Double price
+        Double price,
+        String supplier
 ) {}

@@ -3,6 +3,8 @@ package nashtech.training.ordersystem.controller;
 import nashtech.training.ordersystem.dto.OrderRequestDTO;
 import nashtech.training.ordersystem.dto.OrderResponseDTO;
 import nashtech.training.ordersystem.entity.Role;
+import nashtech.training.ordersystem.entity.RoleName;
+import nashtech.training.ordersystem.repository.RoleRepository;
 import nashtech.training.ordersystem.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -30,16 +32,23 @@ public class OrderController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('CUSTOMER','SELLER','ADMIN')")
+    @PreAuthorize("hasRole('SELLER','CUSTOMER')")
     public ResponseEntity<List<OrderResponseDTO>> getOrders(Authentication auth) {
         String username = auth.getName();
-        Role role = Role.valueOf("ROLE_" + auth.getAuthorities().stream().findFirst().get().getAuthority().replace("ROLE_", ""));
-        List<OrderResponseDTO> orders = orderService.getOrdersForUser(username, role);
+
+        String authority = auth.getAuthorities().stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("User has no roles assigned"))
+                .getAuthority();
+
+        RoleName roleName = RoleName.valueOf(authority.replace("ROLE_", ""));
+
+        List<OrderResponseDTO> orders = orderService.getOrdersForUser(username, roleName);
         return ResponseEntity.ok(orders);
     }
 
     @PutMapping("/{orderId}/status")
-    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
+    @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<OrderResponseDTO> updateOrderStatus(@PathVariable Long orderId,
                                                               @RequestParam("status") String status) {
         OrderResponseDTO updated = orderService.updateOrderStatus(orderId, Enum.valueOf(nashtech.training.ordersystem.entity.OrderStatus.class, status));

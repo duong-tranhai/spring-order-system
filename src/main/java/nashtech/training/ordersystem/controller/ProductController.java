@@ -20,13 +20,6 @@ public class ProductController {
         this.productService = svc;
     }
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
-    public ResponseEntity<ProductResponseDTO> createProduct(@Valid @RequestBody ProductRequestDTO dto) {
-        ProductResponseDTO product = productService.createProduct(dto);
-        return ResponseEntity.status(201).body(product);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Product> listProduct(@PathVariable Long id,
                                                @Valid ProductRequestDTO dto) {

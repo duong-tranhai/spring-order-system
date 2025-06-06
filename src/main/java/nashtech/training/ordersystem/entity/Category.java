@@ -6,29 +6,31 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "items")
+@Table(name = "categories")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderItem {
+public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
-    private Order order;
+    private String name;
 
-    @ManyToOne(optional = false)
-    private Product product;
+    private String description;
 
     @Column(nullable = false)
-    private int quantity;
+    private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private double price; // price per unit at order time
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+
+    
 }
+
