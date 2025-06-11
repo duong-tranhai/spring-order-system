@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management # The Docker image to use for the container.
+    container_name: rabbitmq-local  # A friendly name for your running container.
+    ports:
+      # Maps your local machine's port (left) to the container's port (right).
+      - "5672:5672"   # For the RabbitMQ application protocol.
+      - "15672:15672" # For the web management UI.
+
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    # ✅ Add this line to override the default entrypoint
+    entrypoint: ["/bin/sh", "-c"]
+    # The command now runs correctly under the new entrypoint
+    command:
+      - "tail -f /dev/null"

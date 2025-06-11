@@ -1,13 +1,14 @@
 package nashtech.training.ordersystem.security;
 
-import nashtech.training.ordersystem.dto.AuthenticationRequest;
-import nashtech.training.ordersystem.dto.AuthenticationResponse;
-import nashtech.training.ordersystem.dto.RegisterRequest;
+import nashtech.training.ordersystem.dto.request.authentication.AuthenticationRequest;
+import nashtech.training.ordersystem.dto.request.authentication.RegisterRequest;
+import nashtech.training.ordersystem.dto.response.authentication.AuthenticationResponse;
 import nashtech.training.ordersystem.entity.Role;
 import nashtech.training.ordersystem.entity.RoleName;
 import nashtech.training.ordersystem.entity.User;
 import nashtech.training.ordersystem.repository.RoleRepository;
 import nashtech.training.ordersystem.repository.UserRepository;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,9 +36,10 @@ public class AuthenticationService {
         if (userRepository.existsByUsername(request.username())) {
             throw new RuntimeException("Username already taken");
         }
-        User user = new User();
-        user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        User user = User.builder()
+                .username(request.username())
+                .password(passwordEncoder.encode(request.password()))
+                .build();
 
         Role defaultRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                 .orElseThrow(() -> new RuntimeException("Not found CUSTOMER Role!"));
@@ -53,6 +55,12 @@ public class AuthenticationService {
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+
+        if (!user.isActive()) {
+            // Throwing a more specific exception is good practice.
+            // Spring Security will often translate this to a 403 Forbidden status.
+            throw new DisabledException("User account is locked or inactive.");
+        }
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
