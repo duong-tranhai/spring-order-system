@@ -1,12 +1,12 @@
 -- Create roles table to store role information (e.g., 'ROLE_ADMIN', 'ROLE_SELLER', etc.)
 CREATE TABLE roles (
-    id SERIAL PRIMARY KEY,               -- Auto-incrementing ID
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,               -- Auto-incrementing ID
     name VARCHAR(50) NOT NULL UNIQUE      -- Role name (e.g., 'ROLE_ADMIN', 'ROLE_SELLER')
 );
 
--- Create system_users table (without the 'role' column)
+-- Create system_users table
 CREATE TABLE system_users (
-    id SERIAL PRIMARY KEY,                -- Auto-incrementing ID
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                -- Auto-incrementing ID
     username VARCHAR(255) NOT NULL,        -- Username
     password VARCHAR(255) NOT NULL         -- Password
 );
@@ -22,7 +22,7 @@ CREATE TABLE user_roles (
 
 -- Create products table (with auto-incrementing id)
 CREATE TABLE products (
-    id SERIAL PRIMARY KEY,                -- Auto-incrementing ID
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                -- Auto-incrementing ID
     name VARCHAR(255) NOT NULL,            -- Product name
     description TEXT,                     -- Product description
     stock INT NOT NULL,                   -- Available stock
@@ -31,9 +31,9 @@ CREATE TABLE products (
 
 -- Create orders table (with auto-incrementing id)
 CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,                -- Auto-incrementing ID
-    customer_id INT NOT NULL,             -- Customer (user) who created the order
-    seller_id INT,                        -- Seller (user) who is handling the order
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                -- Auto-incrementing ID
+    customer_id BIGINT NOT NULL,             -- Customer (user) who created the order
+    seller_id BIGINT,                        -- Seller (user) who is handling the order
     status VARCHAR(50) DEFAULT 'PENDING', -- Order status (Pending, Processing, etc.)
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Order creation timestamp
     FOREIGN KEY (customer_id) REFERENCES system_users(id),
@@ -42,13 +42,14 @@ CREATE TABLE orders (
 
 -- Create order_items table (with auto-incrementing id)
 CREATE TABLE order_items (
-    id SERIAL PRIMARY KEY,                -- Auto-incrementing ID
-    order_id INT NOT NULL,                -- Associated order
-    product_id INT NOT NULL,              -- Associated product
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,                -- Auto-incrementing ID
+    order_id BIGINT NOT NULL,                -- Associated order
+    product_id BIGINT NOT NULL,              -- Associated product
     quantity INT NOT NULL,                -- Quantity of the product in the order
     price DECIMAL(10, 2) NOT NULL,        -- Price of the product at the time of order
     FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    UNIQUE (order_id, product_id)
 );
 
 -- Create flyway_schema_history table for Flyway migrations
