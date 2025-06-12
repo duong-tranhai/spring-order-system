@@ -43,7 +43,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new RuntimeException("Not found CUSTOMER Role!"));
         Set<Role> roles = new HashSet<>();
         roles.add(defaultRole);  // Add default role to user
-        user.setRoles(roles);
+        user.setRole(roles);
         userRepository.save(user);
 
         String jwtToken = jwtService.generateToken(user.getUsername());
