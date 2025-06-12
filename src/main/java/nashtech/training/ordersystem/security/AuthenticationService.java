@@ -2,7 +2,7 @@ package nashtech.training.ordersystem.security;
 
 import nashtech.training.ordersystem.dto.AuthenticationRequest;
 import nashtech.training.ordersystem.dto.AuthenticationResponse;
-import nashtech.training.ordersystem.dto.RegisterRequest;
+import nashtech.training.ordersystem.dto.RegisterRequestDTO;
 import nashtech.training.ordersystem.entity.Role;
 import nashtech.training.ordersystem.entity.RoleName;
 import nashtech.training.ordersystem.entity.User;
@@ -31,7 +31,7 @@ public class AuthenticationService {
         this.roleRepository = roleRepository;
     }
 
-    public AuthenticationResponse register(RegisterRequest request) {
+    public AuthenticationResponse register(RegisterRequestDTO request) {
         if (userRepository.existsByUsername(request.username())) {
             throw new RuntimeException("Username already taken");
         }
