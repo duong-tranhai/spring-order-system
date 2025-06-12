@@ -51,11 +51,5 @@ public class Order {
 
     private String paymentStatus;
 
-    private boolean returnRequested = false;
 
-    private boolean returnApproved = false;
-
-    public boolean isReturnEligible() {
-        return false;
-    }
 }

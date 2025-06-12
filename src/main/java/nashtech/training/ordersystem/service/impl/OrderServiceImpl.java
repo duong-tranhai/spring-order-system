@@ -78,6 +78,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         order.setStatus(newStatus);
+        orderRepository.save(order);
         return toResponseDTO(order);
     }
 
@@ -90,11 +91,10 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("You are not allowed to request a return for this order");
         }
 
-        if (!order.isReturnEligible()) {
-            throw new RuntimeException("Order is not eligible for return");
+        if (order.getStatus() != OrderStatus.COMPLETED) {
+            throw new RuntimeException("Only completed orders are eligible for return");
         }
-
-        order.setReturnRequested(true);
+        order.setStatus(OrderStatus.REQUEST_RETURNED);
         orderRepository.save(order);
     }
 
@@ -103,11 +103,26 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (!order.isReturnRequested()) {
+        if (order.getStatus() != OrderStatus.REQUEST_RETURNED) {
             throw new RuntimeException("No return request found for this order");
         }
 
-        order.setReturnApproved(true);
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void cancelOrder(Long orderId, String username) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (!order.getCustomer().getUsername().equals(username)) {
+            throw new RuntimeException("You are not allowed to request a return for this order");
+        }
+
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Only pending orders are eligible for return");
+        }
         order.setStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
     }

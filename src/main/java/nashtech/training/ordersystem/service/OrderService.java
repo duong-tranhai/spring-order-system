@@ -12,4 +12,5 @@ public interface OrderService {
     OrderResponseDTO updateOrderStatus(Long orderId, OrderStatus newStatus);
     void requestReturn(Long orderId, String username);
     void approveReturn(Long orderId);
+    void cancelOrder(Long orderId, String username);
 }
