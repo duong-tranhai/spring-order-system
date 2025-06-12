@@ -32,7 +32,7 @@ public class OrderController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('SELLER','CUSTOMER')")
+    @PreAuthorize("hasAnyRole('SELLER','CUSTOMER')")
     public ResponseEntity<List<OrderResponseDTO>> getOrders(Authentication auth) {
         String username = auth.getName();
 

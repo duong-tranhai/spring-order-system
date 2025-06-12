@@ -37,7 +37,7 @@ public class SupplierController {
                                                  @RequestBody ProductRequestDTO request,
                                                  Authentication auth) {
         Supplier supplier = supplierService.findByName(auth.getName());
-        ProductResponseDTO product = productService.updateProduct(id, request);
+        ProductResponseDTO product = productService.updateProduct(id, request,supplier);
         return ResponseEntity.ok(product);
     }
 
@@ -45,7 +45,7 @@ public class SupplierController {
     @PreAuthorize("hasRole('SUPPLIER')")
     public ResponseEntity<String> deleteProduct(@PathVariable Long id, Authentication auth) {
         Supplier supplier = supplierService.findByName(auth.getName());
-        productService.deleteProduct(id);
+        productService.deleteProduct(id,supplier);
         return ResponseEntity.ok("Deleted successfully");
     }
 
