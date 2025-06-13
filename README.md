@@ -6,7 +6,7 @@ A beginner-friendly **Java 21 Spring Boot** application that implements an Inven
 
 ## Setup & Installation
 
-1. **Clone the repository**
+1. **Clone the productRepository**
    ```bash
    git clone https://github.com/duong-tranhai/spring-order-system.git
    cd spring-order-system
@@ -63,7 +63,7 @@ A beginner-friendly **Java 21 Spring Boot** application that implements an Inven
 
 ## Project Overview
 
-This application is designed to manage products, customer orders, and inventory in a simple but scalable way. It implements a layered architecture separating concerns via packages like `controller`, `service`, `repository`, `entity`, `dto`, and `config`. It supports user authentication and role-based authorization via `security`.
+This application is designed to manage products, customer orders, and inventory in a simple but scalable way. It implements a layered architecture separating concerns via packages like `controller`, `service`, `productRepository`, `entity`, `dto`, and `config`. It supports user authentication and role-based authorization via `security`.
 
 ---
 
@@ -99,7 +99,7 @@ src/main/java/com/example/inventorysystem/
 ├── controller/ # REST API controllers (endpoints)
 ├── dto/ # Data Transfer Objects for request/response payloads
 ├── entity/ # JPA entities representing database tables
-├── repository/ # Spring Data JPA repositories (DAO layer)
+├── productRepository/ # Spring Data JPA repositories (DAO layer)
 ├── service/ # Business logic services
 ├── security/ # Security configuration, JWT handlers, filters, user details
 └── exception/ # Custom exceptions and handlers (optional)
