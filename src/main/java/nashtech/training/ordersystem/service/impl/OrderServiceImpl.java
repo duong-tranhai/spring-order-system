@@ -3,6 +3,7 @@ package nashtech.training.ordersystem.service.impl;
 import lombok.RequiredArgsConstructor;
 import nashtech.training.ordersystem.dto.request.order.CreateOrderDTO;
 import nashtech.training.ordersystem.dto.request.order.OrderItemRequestDTO;
+import nashtech.training.ordersystem.dto.request.order.OrderSearchFilter;
 import nashtech.training.ordersystem.dto.request.order.UpdateOrderDTO;
 import nashtech.training.ordersystem.dto.response.order.OrderResponseDTO;
 import nashtech.training.ordersystem.entity.*;
@@ -10,7 +11,10 @@ import nashtech.training.ordersystem.mapper.OrderMapper;
 import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
 import nashtech.training.ordersystem.repository.UserRepository;
+import nashtech.training.ordersystem.repository.specification.OrderSpecification;
 import nashtech.training.ordersystem.service.OrderService;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +43,27 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponseDTO> getAll() {
         List<Order> orderList = orderRepository.findAll();
         return orderList.stream().map(orderMapper::toOrderDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Use read-only transactions for query methods for better performance
+    public List<OrderResponseDTO> getAllWithFilters(OrderSearchFilter filter) {
+        // 1. Build the dynamic WHERE clause using our Specification builder
+        Specification<Order> spec = OrderSpecification.build(filter);
+
+        // 2. Determine the Sort direction and column
+        String sortColumn = (filter.column() != null && !filter.column().isBlank()) ? filter.column() : "orderDate";
+        Sort.Direction direction = (filter.isAsc()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Sort sort = Sort.by(direction, sortColumn);
+
+        // 3. Query the repository
+        List<Order> orders = orderRepository.findAll(spec, sort);
+
+        // 4. Map the results to DTOs
+        return orders.stream()
+                .map(orderMapper::toOrderDto)
+                .collect(Collectors.toList());
     }
 
     @Override
