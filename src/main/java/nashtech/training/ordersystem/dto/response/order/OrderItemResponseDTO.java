@@ -6,5 +6,6 @@ public record OrderItemResponseDTO(
         Long productId,
         String productName,
         Integer quantity,
-        BigDecimal price
+        BigDecimal price,
+        BigDecimal voucherDiscount
 ) {}

@@ -3,6 +3,7 @@ package nashtech.training.ordersystem.service.impl;
 import lombok.RequiredArgsConstructor;
 import nashtech.training.ordersystem.dto.request.order.CreateOrderDTO;
 import nashtech.training.ordersystem.dto.request.order.OrderItemRequestDTO;
+import nashtech.training.ordersystem.dto.request.order.OrderSearchFilter;
 import nashtech.training.ordersystem.dto.request.order.UpdateOrderDTO;
 import nashtech.training.ordersystem.dto.response.order.OrderResponseDTO;
 import nashtech.training.ordersystem.entity.*;
@@ -10,7 +11,10 @@ import nashtech.training.ordersystem.mapper.OrderMapper;
 import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
 import nashtech.training.ordersystem.repository.UserRepository;
+import nashtech.training.ordersystem.repository.specification.OrderSpecification;
 import nashtech.training.ordersystem.service.OrderService;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,6 +43,27 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponseDTO> getAll() {
         List<Order> orderList = orderRepository.findAll();
         return orderList.stream().map(orderMapper::toOrderDto).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true) // Use read-only transactions for query methods for better performance
+    public List<OrderResponseDTO> getAllWithFilters(OrderSearchFilter filter) {
+        // 1. Build the dynamic WHERE clause using our Specification builder
+        Specification<Order> spec = OrderSpecification.build(filter);
+
+        // 2. Determine the Sort direction and column
+        String sortColumn = (filter.column() != null && !filter.column().isBlank()) ? filter.column() : "orderDate";
+        Sort.Direction direction = (filter.isAsc()) ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        Sort sort = Sort.by(direction, sortColumn);
+
+        // 3. Query the repository
+        List<Order> orders = orderRepository.findAll(spec, sort);
+
+        // 4. Map the results to DTOs
+        return orders.stream()
+                .map(orderMapper::toOrderDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -74,10 +99,15 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setProduct(product);
             orderItem.setQuantity(itemDto.quantity());
             orderItem.setPrice(product.getPrice());
+            orderItem.setVoucherDiscount(itemDto.voucherDiscount());
             orderItems.add(orderItem);
 
             // Calculate total amount
-            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(itemDto.quantity())));
+            BigDecimal effectivePrice = product.getPrice()
+                    .subtract(itemDto.voucherDiscount() != null ? itemDto.voucherDiscount() : BigDecimal.ZERO)
+                    .multiply(BigDecimal.valueOf(itemDto.quantity()));
+
+            totalAmount = totalAmount.add(effectivePrice);
         }
         order.setTotalAmount(totalAmount);
         order.setOrderItems(orderItems);
@@ -129,6 +159,7 @@ public class OrderServiceImpl implements OrderService {
 
                 orderItem.setQuantity(updateOrderItemDTO.quantity());
                 orderItem.setPrice(product.getPrice()); // Update price in case it changed
+                orderItem.setVoucherDiscount(updateOrderItemDTO.voucherDiscount());
                 // No need to add to existedOrder.getOrderItems() as it's already there
             } else {
                 // New item, create and add to the collection
@@ -145,7 +176,9 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // Calculate total amount
-            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(updateOrderItemDTO.quantity())));
+            BigDecimal discount = updateOrderItemDTO.voucherDiscount() != null ? updateOrderItemDTO.voucherDiscount() : BigDecimal.ZERO;
+            BigDecimal effectivePrice = product.getPrice().subtract(discount).multiply(BigDecimal.valueOf(updateOrderItemDTO.quantity()));
+            totalAmount = totalAmount.add(effectivePrice);
         }
 
         // --- Step 2: Remove items that are no longer in the request ---
