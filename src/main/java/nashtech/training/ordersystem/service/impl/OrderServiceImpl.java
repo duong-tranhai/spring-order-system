@@ -99,10 +99,15 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setProduct(product);
             orderItem.setQuantity(itemDto.quantity());
             orderItem.setPrice(product.getPrice());
+            orderItem.setVoucherDiscount(itemDto.voucherDiscount());
             orderItems.add(orderItem);
 
             // Calculate total amount
-            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(itemDto.quantity())));
+            BigDecimal effectivePrice = product.getPrice()
+                    .subtract(itemDto.voucherDiscount() != null ? itemDto.voucherDiscount() : BigDecimal.ZERO)
+                    .multiply(BigDecimal.valueOf(itemDto.quantity()));
+
+            totalAmount = totalAmount.add(effectivePrice);
         }
         order.setTotalAmount(totalAmount);
         order.setOrderItems(orderItems);
@@ -154,6 +159,7 @@ public class OrderServiceImpl implements OrderService {
 
                 orderItem.setQuantity(updateOrderItemDTO.quantity());
                 orderItem.setPrice(product.getPrice()); // Update price in case it changed
+                orderItem.setVoucherDiscount(updateOrderItemDTO.voucherDiscount());
                 // No need to add to existedOrder.getOrderItems() as it's already there
             } else {
                 // New item, create and add to the collection
@@ -170,7 +176,9 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // Calculate total amount
-            totalAmount = totalAmount.add(product.getPrice().multiply(BigDecimal.valueOf(updateOrderItemDTO.quantity())));
+            BigDecimal discount = updateOrderItemDTO.voucherDiscount() != null ? updateOrderItemDTO.voucherDiscount() : BigDecimal.ZERO;
+            BigDecimal effectivePrice = product.getPrice().subtract(discount).multiply(BigDecimal.valueOf(updateOrderItemDTO.quantity()));
+            totalAmount = totalAmount.add(effectivePrice);
         }
 
         // --- Step 2: Remove items that are no longer in the request ---

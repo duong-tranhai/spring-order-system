@@ -11,10 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReturnRequestDTO {
-    Long userId;
-    private Long orderId;
-    private String reasonCode;
-    private String customerComment;
-    private List<ReturnRequestItemRequestDTO> items;
+public class ReturnRequestItemRequestDTO {
+    private Long orderItemId;
+    private Integer quantity;
 }

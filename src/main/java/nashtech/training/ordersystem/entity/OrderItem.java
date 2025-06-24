@@ -20,6 +20,9 @@ public class OrderItem extends BaseEntity {
     private Integer quantity;
     private BigDecimal price;
 
+    @Column(name = "voucher_discount")
+    private BigDecimal voucherDiscount;
+
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;

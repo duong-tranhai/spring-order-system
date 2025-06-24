@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "return_requests")
+@Table(name = "return_requests_items")
 @Getter
 @Setter
 @Builder
@@ -25,7 +25,7 @@ public class ReturnRequestItems extends BaseEntity {
     private ReturnRequests returnRequest;
 
     @ManyToOne
-    @JoinColumn(name = "order_item_id", nullable = false)
+    @JoinColumn(name = "order_item_id",nullable = false)
     private OrderItem orderItem;
 
     private Integer quantity;

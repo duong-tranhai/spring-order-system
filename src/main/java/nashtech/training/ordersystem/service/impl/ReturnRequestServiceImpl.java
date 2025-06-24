@@ -25,13 +25,16 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
 
     @Override
     public ReturnRequestResponseDTO createReturnRequest(Long userId, ReturnRequestDTO dto) {
+        // Fetch order
         Order order = orderRepo.findById(dto.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        // Fetch user
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        ReturnRequests tempRequest = ReturnRequests.builder()
+        // Create and save return request
+        ReturnRequests request = ReturnRequests.builder()
                 .order(order)
                 .user(user)
                 .reasonCode(dto.getReasonCode())
@@ -41,30 +44,41 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        final ReturnRequests request = returnRequestsRepo.save(tempRequest);
+        returnRequestsRepo.save(request);
 
-        List<ReturnRequestItems> items = dto.getItems().stream().map(itemDTO -> {
-            OrderItem item = orderItemRepo.findById(itemDTO.getOrderItemId())
+        // Create and save return request items
+        List<ReturnRequestItems> savedItems = dto.getItems().stream().map(itemDTO -> {
+            OrderItem orderItem = orderItemRepo.findById(itemDTO.getOrderItemId())
                     .orElseThrow(() -> new RuntimeException("Order item not found"));
+
             return ReturnRequestItems.builder()
                     .returnRequest(request)
-                    .orderItem(item)
+                    .orderItem(orderItem)
                     .quantity(itemDTO.getQuantity())
                     .build();
         }).collect(Collectors.toList());
 
-        returnRequestItemsRepo.saveAll(items);
+        returnRequestItemsRepo.saveAll(savedItems);
 
+        // Convert saved items to response DTOs
+        List<ReturnRequestItemResponseDTO> itemResponseDTOs = savedItems.stream()
+                .map(item -> new ReturnRequestItemResponseDTO(
+                        item.getOrderItem().getId(),
+                        item.getQuantity()
+                ))
+                .collect(Collectors.toList());
+
+        // Return the response DTO
         return ReturnRequestResponseDTO.builder()
                 .id(request.getId())
                 .orderId(order.getId())
-                .userId(userId)
+                .userId(user.getId())
                 .reasonCode(request.getReasonCode())
                 .customerComment(request.getCustomerComment())
                 .status(request.getStatus())
                 .createdAt(request.getCreatedAt())
                 .updatedAt(request.getUpdatedAt())
-                .items(dto.getItems())
+                .items(itemResponseDTOs)
                 .build();
     }
 
