@@ -2,6 +2,7 @@ package nashtech.training.ordersystem.controller;
 
 import lombok.RequiredArgsConstructor;
 import nashtech.training.ordersystem.dto.request.returnrequest.ReturnRequestDTO;
+import nashtech.training.ordersystem.dto.request.returnrequest.UpdateReturnRequestDTO;
 import nashtech.training.ordersystem.dto.response.returnrequest.ReturnRequestResponseDTO;
 import nashtech.training.ordersystem.entity.ResolutionType;
 import nashtech.training.ordersystem.service.ReturnRequestService;
@@ -35,4 +36,17 @@ public class ReturnRequestController {
         return ResponseEntity.ok(returnRequestService.getAll());
     }
 
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
+    public ResponseEntity<ReturnRequestResponseDTO> updateReturnRequest(
+            @PathVariable Long id,
+            @RequestBody UpdateReturnRequestDTO dto) {
+        return ResponseEntity.ok(returnRequestService.updateReturnRequest(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'ADMIN')")
+    public ResponseEntity<Void> deleteReturnRequest(@PathVariable Long id) {
+        return returnRequestService.deleteReturnRequest(id);
+    }
 }

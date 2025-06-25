@@ -1,12 +1,14 @@
 package nashtech.training.ordersystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import nashtech.training.ordersystem.dto.request.returnrequest.UpdateReturnRequestDTO;
 import nashtech.training.ordersystem.dto.response.returnrequest.ReturnRequestItemResponseDTO;
 import nashtech.training.ordersystem.dto.request.returnrequest.ReturnRequestDTO;
 import nashtech.training.ordersystem.dto.response.returnrequest.ReturnRequestResponseDTO;
 import nashtech.training.ordersystem.entity.*;
 import nashtech.training.ordersystem.repository.*;
 import nashtech.training.ordersystem.service.ReturnRequestService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -138,6 +140,39 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                                 ).collect(Collectors.toList())
                 )
                 .build();
+    }
+    @Override
+    public ResponseEntity<Void> deleteReturnRequest(Long id) {
+        ReturnRequests request = returnRequestsRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Return request not found"));
+
+        if (request.isDeleted()) {
+            return ResponseEntity.noContent().build(); // Already deleted
+        }
+
+        request.setDeleted(true);
+        request.setDeletedAt(LocalDateTime.now());
+
+        returnRequestsRepo.save(request); // persist soft-delete changes
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ReturnRequestResponseDTO updateReturnRequest(Long id, UpdateReturnRequestDTO dto) {
+        ReturnRequests existing = returnRequestsRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Return request not found"));
+
+        // Apply updates
+        existing.setReasonCode(dto.getReasonCode());
+        existing.setCustomerComment(dto.getAdminComment());
+        existing.setResolutionType(dto.getResolutionType());
+        existing.setStatus(dto.getStatus());
+
+        // Persist updated entity
+        ReturnRequests saved = returnRequestsRepo.save(existing);
+
+        // Return manually constructed DTO for consistency
+        return toDTO(saved);
     }
 }
 
