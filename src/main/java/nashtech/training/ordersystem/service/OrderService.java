@@ -13,4 +13,5 @@ public interface OrderService {
     OrderResponseDTO createOrder(CreateOrderDTO requestDTO);
     OrderResponseDTO updateOrder(Long id, UpdateOrderDTO requestDTO);
     OrderResponseDTO changeStatusOrder(Long orderId, OrderStatus newStatus);
+    void softDelete(String sellerUsername, Long productId);
 }

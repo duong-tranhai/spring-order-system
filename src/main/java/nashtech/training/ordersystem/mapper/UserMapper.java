@@ -10,6 +10,7 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
 
     @Mapping(source = "roles", target = "roleNames")
+    @Mapping(source = "active", target = "isActive")
     UserResponseDTO toDto(User user);
 
     /**

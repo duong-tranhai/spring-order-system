@@ -22,7 +22,8 @@ public class User extends BaseEntity {
     private String email;
     private String firstName;
     private String lastName;
-    private boolean isActive;
+    @Builder.Default
+    private boolean isActive = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

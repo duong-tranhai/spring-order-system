@@ -17,4 +17,6 @@ public interface ProductService {
     ProductResponseDTO addToCategories(Long id, Set<String> categoryNames);
 
     void deleteProduct(Long id);
+
+    void softDelete(String supplierUsername, Long id);
 }

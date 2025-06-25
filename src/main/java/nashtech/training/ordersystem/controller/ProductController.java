@@ -6,6 +6,7 @@ import nashtech.training.ordersystem.dto.response.product.ProductResponseDTO;
 import nashtech.training.ordersystem.service.ProductService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -52,4 +53,12 @@ public class ProductController {
         ProductResponseDTO updatedProductDto = productService.addToCategories(id, categoryNames);
         return ResponseEntity.ok(updatedProductDto);
     }
+    @DeleteMapping("/{productId}")
+    @PreAuthorize("hasRole('SUPPLIER')")
+    public ResponseEntity<?> softDeleteProduct(@PathVariable Long productId,
+                                               Authentication auth) {
+        productService.softDelete(auth.getName(), productId);
+        return ResponseEntity.ok("Product soft-deleted successfully.");
+    }
+
 }

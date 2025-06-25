@@ -49,7 +49,6 @@ public class UserServiceImpl implements UserService {
                 .email(requestDTO.email())
                 .firstName(requestDTO.firstName())
                 .lastName(requestDTO.lastName())
-                .isActive(true)
                 .roles(Set.of(customerRole))
                 .build();
 

@@ -35,4 +35,6 @@ public class Product extends BaseEntity {
     @ManyToOne
     private Supplier supplier;
 
+    private boolean isDeleted = false;
+
 }

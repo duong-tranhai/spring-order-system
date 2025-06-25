@@ -11,6 +11,9 @@ import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
 import nashtech.training.ordersystem.repository.UserRepository;
 import nashtech.training.ordersystem.service.OrderService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@EnableAsync
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
@@ -188,7 +192,22 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(newStatus);
         return orderMapper.toOrderDto(orderRepository.save(order));
     }
+    @Override
+    public void softDelete(String sellerUsername, Long orderId){
+        Order order = orderRepository.findByIdAndIsDeletedFalse(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        if (!order.getCustomer().getUsername().equals(sellerUsername)) {
+            throw new AccessDeniedException("Not authorized to delete this order.");
+        }
+
+        if (List.of("SHIPPED","DELIVERED","CANCELED","RETURNED").contains(order.getStatus().toString())){
+            throw new IllegalStateException("Cannot delete order with status: "+ order.getStatus());
+        }
+
+        order.setDeleted(true);
+        orderRepository.save(order);
+    }
     /**
      * Private helper method to enforce valid state transitions.
      */
@@ -212,4 +231,111 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
     }
+
+    @Autowired
+    private EmailNotificationServiceImpl emailNotificationService;
+
+    public void updateOrderStatus(Order order, OrderStatus newStatus) {
+        OrderStatus currentStatus = order.getStatus();
+
+        // 1. Validate the transition (not shown, but recommended)
+        // 2. Update the order status in the database
+        // order.setStatus(newStatus);
+        // orderRepository.save(order);
+
+        // 3. Handle Side Effects based on the NEW status
+        switch (newStatus) {
+            case SHIPPED:
+                // inventoryService.decreaseStockForOrder(order);
+
+                // --- INTEGRATION EXAMPLE ---
+                String shippedSubject = "Your Order #" + order.getId() + " Has Shipped!";
+                String shippedText = "Dear " + order.getCustomer().getUsername() + ",\n\n"
+                        + "Great news! Your order has been shipped. You can track it using this number: "
+                        + order.getId() + "\n\nThank you for your purchase!";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        shippedSubject,
+                        shippedText
+                );
+                break;
+
+            case CANCELLED:
+                // ... your logic for refunds and stock return
+                String cancelledSubject = "Your Order #" + order.getId() +"Has Been Cancelled!";
+                String cancelledText = "Dear" + order.getCustomer().getUsername() +",\n\n"
+                        +"Your order has been cancelled. Sorry for your inconvenience.";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        cancelledSubject,
+                        cancelledText);
+                break;
+
+            case DELIVERED:
+                // --- INTEGRATION EXAMPLE ---
+                String deliveredSubject = "Your Order #" + order.getId() + " Has Been Delivered!";
+                String deliveredText = "Dear " + order.getCustomer().getUsername() + ",\n\n"
+                        + "Your order has been successfully delivered. We hope you enjoy it!\n\n"
+                        + "Thank you for shopping with us.";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        deliveredSubject,
+                        deliveredText
+                );
+                break;
+
+            case PROCESSING:
+                String processedSubject = "Your Order #" + order.getId() +" is being processed!";
+                String processedText = "Dear " + order.getCustomer().getUsername() + ",\n\n"
+                        + "Your order is being processed. You can track it using this number: "
+                        +order.getId()+ "\n\nThank you for your patient.";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        processedSubject,
+                        processedText
+                );
+                break;
+
+            case PENDING:
+                String pendingSubject = "Your order #" + order.getId() +" is on hold!";
+                String pendingText = "Dear" + order.getCustomer().getUsername() + ",\n\n"
+                        + "Your order is on hold. You can track it using this number: "
+                        +order.getId()+ "\n\nThank you for your patient.";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        pendingSubject,
+                        pendingText
+                );
+                break;
+
+            case RETURN_REQUESTED:
+                String returnreqSubject = "Your return request on order #" + order.getId()+"!";
+                String returnreqText = "Dear" + order.getCustomer().getUsername() +",\n\n"
+                        +"We have received your return request. Please wait for us to proceed with your order #"
+                        +order.getId()+"\n\nThank you for your patient.";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        returnreqSubject,
+                        returnreqText
+                );
+                break;
+
+            case RETURNED:
+                String returnSubject = "Your order # "+order.getId()+"has been returned!";
+                String returnText = "Dear" + order.getCustomer().getUsername() + ",\n\n"
+                        +"You have successfully returned your order #" +order.getId()
+                        +"\n\nThank you for shopping with us.";
+                emailNotificationService.sendEmail(
+                        order.getCustomer().getEmail(),
+                        returnSubject,
+                        returnText
+                );
+                break;
+
+            
+
+        }
+    }
 }
+
+

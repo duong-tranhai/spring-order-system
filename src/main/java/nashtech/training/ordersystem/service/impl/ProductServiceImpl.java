@@ -9,6 +9,7 @@ import nashtech.training.ordersystem.mapper.ProductMapper;
 import nashtech.training.ordersystem.repository.CategoryRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
 import nashtech.training.ordersystem.service.ProductService;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -88,5 +89,18 @@ public class ProductServiceImpl implements ProductService {
         existingProduct.setDeletedAt(LocalDateTime.now());
 
         productRepository.save(existingProduct);
+    }
+
+    @Override
+    public void softDelete(String supplierUsername, Long productId){
+        Product product = productRepository.findByIdAndIsDeletedFalse(productId)
+                .orElseThrow(()->new RuntimeException("Product not found or already deleted"));
+
+        if (!product.getSupplier().getName().equals(supplierUsername)){
+            throw new AccessDeniedException("Unauthorized deleted attempt");
+        }
+
+        product.setDeleted(true);
+        productRepository.save(product);
     }
 }
