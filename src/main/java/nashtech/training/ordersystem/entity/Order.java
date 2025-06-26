@@ -30,8 +30,8 @@ public class Order extends BaseEntity {
 
     @Enumerated(EnumType.STRING)  // Store enum as a string in the database
     @Column(unique = true)
-    private OrderPaymentStatus paymentStatus; //
     private String note;
+
 
     @ManyToOne
     @JoinColumn(name = "customer_id")

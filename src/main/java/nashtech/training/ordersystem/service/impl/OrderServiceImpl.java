@@ -12,6 +12,7 @@ import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
 import nashtech.training.ordersystem.repository.UserRepository;
 import nashtech.training.ordersystem.repository.specification.OrderSpecification;
+import nashtech.training.ordersystem.service.EmailNotificationService;
 import nashtech.training.ordersystem.service.OrderService;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    private final EmailNotificationService emailNotificationService;
 
     @Override
     public OrderResponseDTO getById(Long id) {
@@ -76,7 +78,6 @@ public class OrderServiceImpl implements OrderService {
                 .orderDate(LocalDateTime.now())
                 .customer(customer)
                 .status(OrderStatus.PENDING)
-                .paymentStatus(OrderPaymentStatus.valueOf(requestDTO.paymentStatus()))
                 .shippingAddress(requestDTO.shippingAddress())
                 .build();
 
@@ -113,6 +114,14 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         order.setCreatedBy(customer.getUsername());
 
+        Payment payment = Payment.builder()
+                .order(order)
+                .paymentMethod(requestDTO.paymentMethod())
+                .status(OrderPaymentStatus.PAID)
+                .amount(totalAmount)
+                .build();
+
+        order.getPayments().add(payment);
         return orderMapper.toOrderDto(orderRepository.save(order));
     }
 
@@ -197,8 +206,27 @@ public class OrderServiceImpl implements OrderService {
         }
 
         existedOrder.setTotalAmount(totalAmount);
-        existedOrder.setPaymentStatus(OrderPaymentStatus.valueOf(requestDTO.paymentStatus()));
         existedOrder.setShippingAddress(requestDTO.shippingAddress());
+
+        if (!existedOrder.getPayments().isEmpty()) {
+            Payment payment = existedOrder.getPayments().get(0); // use latest logic if needed
+            payment.setAmount(totalAmount);
+            payment.setStatus(OrderPaymentStatus.valueOf(requestDTO.paymentStatus()));
+
+            if (requestDTO.paymentMethod() != null) {
+                payment.setPaymentMethod(PaymentMethod.valueOf(requestDTO.paymentMethod()));
+            }
+        } else {
+            // Create new payment if none exists
+            Payment newPayment = Payment.builder()
+                    .order(existedOrder)
+                    .amount(totalAmount)
+                    .status(OrderPaymentStatus.valueOf(requestDTO.paymentStatus()))
+                    .paymentMethod(PaymentMethod.valueOf(requestDTO.paymentMethod()))
+                    .build();
+
+            existedOrder.getPayments().add(newPayment);
+        }
 
         // No need to call setOrderItems(orderItems) here as we've been modifying
         // the existing collection directly.
@@ -207,19 +235,42 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponseDTO changeStatusOrder(Long orderId, OrderStatus newStatus) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
 
         OrderStatus currentStatus = order.getStatus();
-        // No change needed if status is the same
+
         if (currentStatus == newStatus) {
             return orderMapper.toOrderDto(order);
         }
 
-        // 2. State Transition Logic
         validateTransition(currentStatus, newStatus);
 
         order.setStatus(newStatus);
-        return orderMapper.toOrderDto(orderRepository.save(order));
+        Order savedOrder = orderRepository.save(order);
+
+        // ✅ Call the email notification
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("customerName", order.getCustomer());
+        variables.put("orderId", order.getId());
+        variables.put("orderStatus", newStatus.toString());
+        variables.put("message", switch (newStatus) {
+            case SHIPPED -> "Your order has been shipped. You’ll receive it soon.";
+            case DELIVERED -> "Your order has been delivered. We hope you enjoy it.";
+            case CANCELLED -> "Your order has been cancelled. Please contact support for details.";
+            case COMPLETED -> "Your order is now marked as completed. Thank you!";
+            case RETURN_REQUESTED -> "Your return request has been received.";
+            case RETURNED -> "Your return has been processed successfully.";
+            default -> "Your order status has changed.";
+        });
+
+        emailNotificationService.sendOrderStatusEmail(
+                order.getCustomer().getEmail(),
+                "Order #" + order.getId() + " - Status Update",
+                variables
+        );
+
+        return orderMapper.toOrderDto(savedOrder);
     }
 
     /**

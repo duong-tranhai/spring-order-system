@@ -147,7 +147,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
                 .orElseThrow(() -> new RuntimeException("Return request not found"));
 
         if (request.isDeleted()) {
-            return ResponseEntity.noContent().build(); // Already deleted
+            throw new RuntimeException("Return request is already deleted."); // Already deleted
         }
 
         request.setDeleted(true);

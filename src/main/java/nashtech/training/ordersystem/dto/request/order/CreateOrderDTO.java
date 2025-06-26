@@ -1,10 +1,12 @@
 package nashtech.training.ordersystem.dto.request.order;
 
+import nashtech.training.ordersystem.entity.PaymentMethod;
+
 import java.util.List;
 
 public record CreateOrderDTO(
         String shippingAddress,
-        String paymentStatus,
+        PaymentMethod paymentMethod,
         String username,
         List<OrderItemRequestDTO> items
 ) {}

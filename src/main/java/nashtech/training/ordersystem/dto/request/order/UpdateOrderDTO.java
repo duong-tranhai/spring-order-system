@@ -5,6 +5,7 @@ import java.util.List;
 public record UpdateOrderDTO(
         String shippingAddress,
         String paymentStatus,
-        List<OrderItemRequestDTO> items
+        List<OrderItemRequestDTO> items,
+        String paymentMethod
 ) {
 }

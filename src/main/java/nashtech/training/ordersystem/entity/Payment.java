@@ -55,4 +55,6 @@ public class Payment extends BaseEntity {
      */
     @Column(name = "gateway_transaction_id")
     private String gatewayTransactionId;
+
+    private OrderPaymentStatus paymentStatus;
 }
