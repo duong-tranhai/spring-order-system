@@ -1,10 +1,13 @@
 package nashtech.training.ordersystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import nashtech.training.ordersystem.client.PaymentClient;
 import nashtech.training.ordersystem.dto.request.order.CreateOrderDTO;
 import nashtech.training.ordersystem.dto.request.order.OrderItemRequestDTO;
 import nashtech.training.ordersystem.dto.request.order.OrderSearchFilter;
 import nashtech.training.ordersystem.dto.request.order.UpdateOrderDTO;
+import nashtech.training.ordersystem.dto.request.payment.PaymentRequestDTO;
 import nashtech.training.ordersystem.dto.response.order.OrderResponseDTO;
 import nashtech.training.ordersystem.entity.*;
 import nashtech.training.ordersystem.mapper.OrderMapper;
@@ -25,6 +28,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -34,6 +38,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
     private final EmailNotificationService emailNotificationService;
+    private final PaymentClient paymentClient;
 
     @Override
     public OrderResponseDTO getById(Long id) {
@@ -77,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = Order.builder()
                 .orderDate(LocalDateTime.now())
                 .customer(customer)
-                .status(OrderStatus.PENDING)
+                .orderStatus(OrderStatus.PENDING)
                 .shippingAddress(requestDTO.shippingAddress())
                 .build();
 
@@ -135,7 +140,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("The order is deleted!");
         }
 
-        if (!existedOrder.getStatus().equals(OrderStatus.PENDING)) {
+        if (!existedOrder.getOrderStatus().equals(OrderStatus.PENDING)) {
             throw new RuntimeException("Order can only be updated in pending status!");
         }
 
@@ -238,7 +243,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        OrderStatus currentStatus = order.getStatus();
+        OrderStatus currentStatus = order.getOrderStatus();
 
         if (currentStatus == newStatus) {
             return orderMapper.toOrderDto(order);
@@ -246,7 +251,7 @@ public class OrderServiceImpl implements OrderService {
 
         validateTransition(currentStatus, newStatus);
 
-        order.setStatus(newStatus);
+        order.setOrderStatus(newStatus);
         Order savedOrder = orderRepository.save(order);
 
         // ✅ Call the email notification
@@ -295,5 +300,43 @@ public class OrderServiceImpl implements OrderService {
         if (!isValid) {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
+    }
+    @Override
+    public void initiatePayment(PaymentRequestDTO request) {
+        Long orderId = request.orderId();
+
+        // 1. Check if order exists
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+
+        // 2. Call payment client
+        paymentClient.createPaymentIntent(
+                        orderId.toString(),
+                        request.amount(),
+                        request.currency()
+                )
+                .doOnSuccess(clientSecret -> log.info("✅ PaymentIntent created successfully for orderId: {} - clientSecret: {}", orderId, clientSecret))
+                .doOnError(error -> log.error("❌ Failed to create PaymentIntent for orderId: {}", orderId, error))
+                .subscribe(); // Fire and forget
+
+        // 3. Log current status
+        log.info("📌 Order {} current payment status: {}", orderId, order.getOrderPaymentStatus());
+    }
+    @Override
+    public void markOrderAsPaid(String orderId) {
+        Order order = orderRepository.findById(Long.parseLong(orderId))
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setOrderPaymentStatus(OrderPaymentStatus.PAID);
+        orderRepository.save(order);
+        log.info("✅ Order {} marked as PAID", orderId);
+    }
+
+    @Override
+    public void markOrderAsPaymentFailed(String orderId) {
+        Order order = orderRepository.findById(Long.parseLong(orderId))
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setOrderPaymentStatus(OrderPaymentStatus.FAILED);
+        orderRepository.save(order);
+        log.warn("❌ Order {} marked as PAYMENT_FAILED", orderId);
     }
 }

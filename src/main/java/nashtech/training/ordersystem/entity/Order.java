@@ -22,16 +22,15 @@ public class Order extends BaseEntity {
 
     private LocalDateTime orderDate;
     @Enumerated(EnumType.STRING)  // Store enum as a string in the database
-    @Column(unique = true)
-    private OrderStatus status; //
+    private OrderStatus orderStatus; //
 
     private BigDecimal totalAmount;
     private String shippingAddress;
 
-    @Enumerated(EnumType.STRING)  // Store enum as a string in the database
-    @Column(unique = true)
     private String note;
 
+    @Enumerated(EnumType.STRING)  // Store enum as a string in the database
+    private OrderPaymentStatus orderPaymentStatus;
 
     @ManyToOne
     @JoinColumn(name = "customer_id")
