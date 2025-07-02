@@ -1,8 +1,8 @@
 package nashtech.training.ordersystem.security;
 
-import nashtech.training.ordersystem.dto.AuthenticationRequest;
-import nashtech.training.ordersystem.dto.AuthenticationResponse;
-import nashtech.training.ordersystem.dto.RegisterRequest;
+import nashtech.training.ordersystem.dto.request.authentication.AuthenticationRequest;
+import nashtech.training.ordersystem.dto.request.authentication.RegisterRequest;
+import nashtech.training.ordersystem.dto.response.authentication.AuthenticationResponse;
 import nashtech.training.ordersystem.entity.Role;
 import nashtech.training.ordersystem.entity.RoleName;
 import nashtech.training.ordersystem.entity.User;
@@ -35,9 +35,10 @@ public class AuthenticationService {
         if (userRepository.existsByUsername(request.username())) {
             throw new RuntimeException("Username already taken");
         }
-        User user = new User();
-        user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        User user = User.builder()
+                .username(request.username())
+                .password(passwordEncoder.encode(request.password()))
+                .build();
 
         Role defaultRole = roleRepository.findByName(RoleName.ROLE_CUSTOMER)
                 .orElseThrow(() -> new RuntimeException("Not found CUSTOMER Role!"));
