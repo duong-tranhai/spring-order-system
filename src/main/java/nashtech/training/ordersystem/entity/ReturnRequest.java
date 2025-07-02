@@ -15,7 +15,7 @@ public class ReturnRequest {
     private Long id;
 
     @ManyToOne
-    private User username;
+    private User customer;
 
     @ManyToOne
     private Product product;

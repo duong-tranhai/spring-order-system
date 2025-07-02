@@ -42,7 +42,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         }
 
         ReturnRequest request = new ReturnRequest();
-        request.setUsername(customer);
+        request.setCustomer(customer);
         request.setOrder(order);
         request.setProduct(product);
         request.setReason(reason);

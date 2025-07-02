@@ -96,7 +96,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findByIdAndIsDeletedFalse(productId)
                 .orElseThrow(()->new RuntimeException("Product not found or already deleted"));
 
-        if (!product.getSupplier().getName().equals(supplierUsername)){
+        if (!product.getSupplier().getUsername().equals(supplierUsername)){
             throw new AccessDeniedException("Unauthorized deleted attempt");
         }
 

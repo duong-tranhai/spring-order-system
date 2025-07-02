@@ -10,6 +10,7 @@ import nashtech.training.ordersystem.mapper.OrderMapper;
 import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
 import nashtech.training.ordersystem.repository.UserRepository;
+import nashtech.training.ordersystem.service.EmailNotificationService;
 import nashtech.training.ordersystem.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -32,6 +33,8 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final OrderMapper orderMapper;
+    @Autowired
+    private final EmailNotificationService emailNotificationService;
 
     @Override
     public OrderResponseDTO getById(Long id) {
@@ -231,9 +234,6 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
     }
-
-    @Autowired
-    private EmailNotificationServiceImpl emailNotificationService;
 
     public void updateOrderStatus(Order order, OrderStatus newStatus) {
         OrderStatus currentStatus = order.getStatus();

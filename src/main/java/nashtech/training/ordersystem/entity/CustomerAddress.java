@@ -16,10 +16,10 @@ public class CustomerAddress {
 
     private BigInteger user_id;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String recipient_name;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String phone_number;
 
     @Column(columnDefinition = "TEXT")
