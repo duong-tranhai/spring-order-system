@@ -1,18 +1,93 @@
 version: '3.8'
 
 services:
-  rabbitmq:
-    image: rabbitmq:3-management # The Docker image to use for the container.
-    container_name: rabbitmq-local  # A friendly name for your running container.
+  # 1. PostgreSQL Database Service
+  postgres-db:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=inventorydb
     ports:
-      # Maps your local machine's port (left) to the container's port (right).
-      - "5672:5672"   # For the RabbitMQ application protocol.
-      - "15672:15672" # For the web management UI.
+      - "5434:5432"
+    networks:
+      - shopping-network
+    # This maps the 'postgres_data' volume to the directory where Postgres stores its data inside the container.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inventorydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  stripe-cli:
-    image: stripe/stripe-cli:latest
-    # ✅ Add this line to override the default entrypoint
-    entrypoint: ["/bin/sh", "-c"]
-    # The command now runs correctly under the new entrypoint
-    command:
-      - "tail -f /dev/null"
+  # 2. RabbitMQ Service
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Port for application connections
+      - "15672:15672" # Port for the Management Web UI
+    networks:
+      - shopping-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 3. Payment Service
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY} # Using variables for secrets
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - SERVER_PORT=8082
+    depends_on:
+      rabbitmq:
+        condition: service_healthy # Wait for RabbitMQ to be healthy
+    networks:
+      - shopping-network
+
+  # 4. Order Service
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - PAYMENT_SERVICE_URL=http://payment-service:8081
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/inventorydb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres-db:5432/inventorydb
+      - SPRING_FLYWAY_USER=postgres
+      - SPRING_FLYWAY_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SERVER_PORT=8080
+    depends_on:
+      rabbitmq:
+        condition: service_healthy # Wait for RabbitMQ to be healthy
+      postgres-db:
+        condition: service_healthy # Wait for PostgreSQL to be healthy
+      payment-service:
+        condition: service_started # Just wait for this one to start
+    networks:
+      - shopping-network
+
+# Define the named volume at the top level
+volumes:
+  postgres_data:
+    driver: local
+
+# This top-level 'networks' key defines the network for inter-service communication.
+# It must be at the same indentation level as 'services' and 'volumes'.
+networks:
+  shopping-network:
+    driver: bridge
