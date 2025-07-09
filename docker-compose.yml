@@ -7,8 +7,8 @@ services:
     container_name: postgres-db
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=inventorydb
+      - POSTGRES_PASSWORD=postres
+      - POSTGRES_DB=postgres
     ports:
       - "5434:5432"
     networks:
@@ -45,8 +45,6 @@ services:
       - "8082:8082"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY} # Using variables for secrets
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - SERVER_PORT=8082
     depends_on:
       rabbitmq:
@@ -62,11 +60,11 @@ services:
       - "8080:8080"
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
-      - PAYMENT_SERVICE_URL=http://payment-service:8081
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/inventorydb
+      - PAYMENT_SERVICE_URL=http://payment-service:8082
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/postgres
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres-db:5432/inventorydb
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres-db:5432/postgres
       - SPRING_FLYWAY_USER=postgres
       - SPRING_FLYWAY_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
@@ -80,7 +78,13 @@ services:
         condition: service_started # Just wait for this one to start
     networks:
       - shopping-network
-
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    # ✅ Add this line to override the default entrypoint
+    entrypoint: [ "/bin/sh", "-c" ]
+    # The command now runs correctly under the new entrypoint
+    command:
+      - "tail -f /dev/null"
 # Define the named volume at the top level
 volumes:
   postgres_data:

@@ -30,11 +30,11 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentIntent createPaymentIntent(CreatePaymentRequest paymentRequest) throws StripeException {
         PaymentIntentCreateParams params =
                 PaymentIntentCreateParams.builder()
-                        .setAmount(paymentRequest.amount())
-                        .setCurrency(paymentRequest.currency())
+                        .setAmount(paymentRequest.getAmount())
+                        .setCurrency(paymentRequest.getCurrency())
                         // In the latest version of the API, specifying the `automatic_payment_methods` parameter
                         // is optional because Stripe enables its functionality by default.
-                        .putMetadata("order_id", String.valueOf(paymentRequest.orderId())) // Optional: Add metadata
+                        .putMetadata("order_id", String.valueOf(paymentRequest.getOrderId())) // Optional: Add metadata
                         .setAutomaticPaymentMethods(
                                 PaymentIntentCreateParams.AutomaticPaymentMethods.builder().setEnabled(true).build()
                         )

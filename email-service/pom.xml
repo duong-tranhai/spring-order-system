@@ -8,7 +8,7 @@
         <groupId>nashtech.training</groupId>
         <artifactId>payment-service</artifactId> <!-- or change to common parent -->
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath> <!-- if multi-module -->
+        <relativePath>../payment-service/pom.xml</relativePath> <!-- if multi-module -->
     </parent>
 
     <artifactId>email-service</artifactId>

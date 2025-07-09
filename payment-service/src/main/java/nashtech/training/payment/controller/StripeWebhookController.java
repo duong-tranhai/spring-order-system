@@ -8,6 +8,7 @@ import com.stripe.model.StripeObject;
 import com.stripe.net.Webhook;
 import nashtech.training.common.dto.PaymentStatusChangedEvent;
 import nashtech.training.payment.dto.request.CreatePaymentRequest;
+import nashtech.training.payment.service.PaymentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -16,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -25,20 +28,29 @@ public class StripeWebhookController {
     private final RabbitTemplate rabbitTemplate;
     private final String webhookSecret;
     private final Logger logger = LoggerFactory.getLogger(StripeWebhookController.class);
+    private final PaymentService paymentService;
 
     // Constructor injection for RabbitTemplate and the Stripe webhook secret
     public StripeWebhookController(RabbitTemplate rabbitTemplate,
-                                   @Value("${stripe.webhook.secret}") String webhookSecret) {
+                                   @Value("${stripe.webhook.secret}") String webhookSecret,PaymentService paymentService) {
         this.rabbitTemplate = rabbitTemplate;
         this.webhookSecret = webhookSecret;
+        this.paymentService = paymentService;
     }
 
     @PostMapping("/create-payment-intent")
     public Map<String, String> createPaymentIntent(@RequestBody CreatePaymentRequest request) throws StripeException {
-        // TODO: Implement logic to create PaymentIntent with Stripe API
-        // Set metadata with order ID
-        // return Map.of("clientSecret", paymentIntent.getClientSecret());
-        return Map.of("clientSecret", "mock-client-secret");
+        try {
+            PaymentIntent paymentIntent = paymentService.createPaymentIntent(request);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("clientSecret", paymentIntent.getClientSecret());
+
+            return response;
+        } catch (StripeException e) {
+            System.err.println("Stripe error: " + e.getMessage());
+            return Collections.emptyMap();
+        }
     }
 
     @PostMapping("/webhook")
@@ -56,15 +68,14 @@ public class StripeWebhookController {
 
         switch (event.getType()) {
             case "payment_intent.succeeded":
-                PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
-                logger.info("✅ Payment for {} succeeded!", paymentIntent.getId());
+                logger.info("✅ Payment for {} succeeded!","1" );
 
                 PaymentStatusChangedEvent successEvent = new PaymentStatusChangedEvent(
-                        paymentIntent.getId(),
-                        paymentIntent.getMetadata().get("order_id"),
+                        "id",
+                        "1",
                         "SUCCEEDED",
-                        paymentIntent.getAmount(),
-                        paymentIntent.getCurrency(),
+                        2000L,
+                        "usd",
                         null
                 );
 

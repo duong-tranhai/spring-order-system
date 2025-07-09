@@ -11,8 +11,12 @@
     </parent>
 
     <artifactId>payment-service</artifactId>
+    <packaging>pom</packaging>
     <name>payment-service</name>
     <description>Service for handling Stripe payments and webhooks</description>
+    <modules>
+        <module>email-service</module>
+    </modules>
 
     <dependencies>
         <!-- Spring Boot Starters -->

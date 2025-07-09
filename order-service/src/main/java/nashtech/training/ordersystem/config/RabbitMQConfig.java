@@ -10,8 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
+    // Payment Exchange
     @Value("${rabbitmq.exchange.name}")
-    private String exchange;
+    private String paymentExchangeName;
 
     @Value("${rabbitmq.queue.succeeded}")
     private String succeededQueueName;
@@ -25,12 +26,20 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.routingkey.failed}")
     private String failedRoutingKey;
 
-    // This configuration declares the exchange, the queues, and the bindings between them.
-    // It also provides a JSON message converter.
+    // Email Exchange
+    @Value("${rabbitmq.email.exchange}")
+    private String emailExchangeName;
 
+    @Value("${rabbitmq.queue.email}")
+    private String emailQueueName;
+
+    @Value("${rabbitmq.routingkey.email}")
+    private String emailRoutingKey;
+
+    // Payment Exchange Bean
     @Bean
-    public TopicExchange exchange() {
-        return new TopicExchange(exchange);
+    public TopicExchange paymentExchange() {
+        return new TopicExchange(paymentExchangeName);
     }
 
     @Bean
@@ -45,15 +54,31 @@ public class RabbitMQConfig {
 
     @Bean
     public Binding succeededBinding() {
-        return BindingBuilder.bind(succeededQueue()).to(exchange()).with(succeededRoutingKey);
+        return BindingBuilder.bind(succeededQueue()).to(paymentExchange()).with(succeededRoutingKey);
     }
 
     @Bean
     public Binding failedBinding() {
-        return BindingBuilder.bind(failedQueue()).to(exchange()).with(failedRoutingKey);
+        return BindingBuilder.bind(failedQueue()).to(paymentExchange()).with(failedRoutingKey);
     }
 
-    // Use JSON for serializing/deserializing messages between services.
+    // Email Exchange Bean
+    @Bean
+    public TopicExchange emailExchange() {
+        return new TopicExchange(emailExchangeName);
+    }
+
+    @Bean
+    public Queue emailQueue() {
+        return new Queue(emailQueueName);
+    }
+
+    @Bean
+    public Binding emailBinding() {
+        return BindingBuilder.bind(emailQueue()).to(emailExchange()).with(emailRoutingKey);
+    }
+
+    // Shared JSON Message Converter
     @Bean
     public MessageConverter converter() {
         return new Jackson2JsonMessageConverter();

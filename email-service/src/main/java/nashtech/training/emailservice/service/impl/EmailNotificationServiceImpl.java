@@ -38,7 +38,7 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
 
             Context context = new Context();
             context.setVariables(variables);
-            String htmlContent = templateEngine.process("email/order-status.html", context);
+            String htmlContent = templateEngine.process("templates.email/order-status.html", context);
 
             helper.setText(htmlContent, true); // true = HTML
 

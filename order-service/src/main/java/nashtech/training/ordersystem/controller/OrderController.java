@@ -57,6 +57,7 @@ public class OrderController {
 
     // In your Controller
     @PostMapping("/request-payment-order")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public Mono<Map<String, String>> initiatePayment(@RequestBody PaymentRequestDTO request) {
         return orderService.requestPaymentForOrder(request)
                 .map(clientSecret -> Map.of("clientSecret", clientSecret)); // Map the result to a JSON object

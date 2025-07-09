@@ -8,6 +8,7 @@ import nashtech.training.ordersystem.dto.request.order.UpdateOrderDTO;
 import nashtech.training.ordersystem.dto.request.payment.PaymentRequestDTO;
 import nashtech.training.ordersystem.dto.response.order.OrderResponseDTO;
 import nashtech.training.ordersystem.entity.*;
+import nashtech.training.ordersystem.event.OrderEmailEvent;
 import nashtech.training.ordersystem.mapper.OrderMapper;
 import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;
@@ -15,6 +16,7 @@ import nashtech.training.ordersystem.repository.UserRepository;
 import nashtech.training.ordersystem.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
@@ -35,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final PaymentClient paymentClient;
     private final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+    private final RabbitTemplate rabbitTemplate;
 
     @Override
     public OrderResponseDTO getById(Long id) {
@@ -89,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         order.setOrderItems(orderItems);
         order.setCreatedBy(customer.getUsername());
-
+        notifyEmail(order);
         return orderMapper.toOrderDto(orderRepository.save(order));
     }
 
@@ -278,5 +281,19 @@ public class OrderServiceImpl implements OrderService {
         if (!isValid) {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
+    }
+    public void notifyEmail(Order order) {
+        OrderEmailEvent emailEvent = new OrderEmailEvent(
+                order.getCustomer().getEmail(),
+                "Order Confirmation",
+                String.valueOf(order.getId()),
+                order.getStatus().name()
+        );
+
+        rabbitTemplate.convertAndSend(
+                "email.exchange",           // same as your configured exchange
+                "email.send.routingkey",      // routing key for email
+                emailEvent
+        );
     }
 }

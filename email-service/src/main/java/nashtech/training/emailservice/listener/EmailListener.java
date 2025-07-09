@@ -16,7 +16,7 @@ public class EmailListener {
     private final EmailNotificationService emailService;
 
     @RabbitListener(queues = RabbitMQConfig.QUEUE)
-    public void receiveEmailEvent(OrderEmailEvent event) {
+    public void receiveEmailEvent(OrderEmailEvent event) {ss
         Map<String, Object> variables = Map.of(
                 "orderId", event.getOrderId(),
                 "status", event.getStatus()
