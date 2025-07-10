@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <!-- Inherit from the main parent POM -->
+    <parent>
+        <groupId>nashtech.training</groupId>
+        <artifactId>ordersystem-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>common-dtos</artifactId>
+    <name>common-dtos</name>
+    <description>Shared DTOs for inter-service communication</description>
+
+    <!-- This module has no dependencies of its own, it only provides classes -->
+
+</project>
