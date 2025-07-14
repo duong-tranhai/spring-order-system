@@ -9,7 +9,7 @@ WORKDIR /app
 COPY target/email-service-0.0.1-SNAPSHOT.jar app.jar
 
 # Make port 8082 available to the world outside this container
-EXPOSE 8083
+EXPOSE 8081
 
 # Run the JAR file when the container launches
 ENTRYPOINT ["java", "-jar", "app.jar"]

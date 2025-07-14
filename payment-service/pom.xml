@@ -11,12 +11,8 @@
     </parent>
 
     <artifactId>payment-service</artifactId>
-    <packaging>pom</packaging>
     <name>payment-service</name>
     <description>Service for handling Stripe payments and webhooks</description>
-    <modules>
-        <module>email-service</module>
-    </modules>
 
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -44,6 +40,7 @@
         <dependency>
             <groupId>nashtech.training</groupId>
             <artifactId>common-dtos</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
 
         <!-- Testing -->
@@ -68,9 +65,10 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- The compiler plugin configuration is now inherited from the parent -->
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

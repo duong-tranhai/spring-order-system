@@ -1,6 +1,7 @@
 package nashtech.training.ordersystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import nashtech.training.common.dto.OrderEmailEvent;
 import nashtech.training.ordersystem.client.PaymentClient;
 import nashtech.training.ordersystem.dto.request.order.CreateOrderDTO;
 import nashtech.training.ordersystem.dto.request.order.OrderItemRequestDTO;
@@ -8,7 +9,6 @@ import nashtech.training.ordersystem.dto.request.order.UpdateOrderDTO;
 import nashtech.training.ordersystem.dto.request.payment.PaymentRequestDTO;
 import nashtech.training.ordersystem.dto.response.order.OrderResponseDTO;
 import nashtech.training.ordersystem.entity.*;
-import nashtech.training.ordersystem.event.OrderEmailEvent;
 import nashtech.training.ordersystem.mapper.OrderMapper;
 import nashtech.training.ordersystem.repository.OrderRepository;
 import nashtech.training.ordersystem.repository.ProductRepository;

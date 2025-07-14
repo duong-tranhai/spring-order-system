@@ -6,13 +6,12 @@
 
     <parent>
         <groupId>nashtech.training</groupId>
-        <artifactId>payment-service</artifactId> <!-- or change to common parent -->
+        <artifactId>ordersystem-parent</artifactId> <!-- or change to common parent -->
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../payment-service/pom.xml</relativePath> <!-- if multi-module -->
     </parent>
 
     <artifactId>email-service</artifactId>
-    <name>Email Service</name>
+    <name>email-service</name>
 
     <properties>
         <java.version>21</java.version>
@@ -53,6 +52,12 @@
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>nashtech.training</groupId>
+            <artifactId>common-dtos</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+        </dependency>
+
         <!-- ✅ Jackson (for JSON message payloads) -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -80,12 +85,22 @@
 
     <build>
         <plugins>
-
-            <!-- Spring Boot Maven Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <!-- The compiler plugin configuration is now inherited from the parent -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
 
         </plugins>

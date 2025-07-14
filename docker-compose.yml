@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. PostgreSQL Database Service
   postgres-db:
@@ -7,8 +5,8 @@ services:
     container_name: postgres-db
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postres
-      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=inventorydb
     ports:
       - "5434:5432"
     networks:
@@ -61,10 +59,10 @@ services:
     environment:
       - SPRING_RABBITMQ_HOST=rabbitmq
       - PAYMENT_SERVICE_URL=http://payment-service:8082
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/postgres
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/inventorydb
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres-db:5432/postgres
+      - SPRING_FLYWAY_URL=jdbc:postgresql://postgres-db:5432/inventorydb
       - SPRING_FLYWAY_USER=postgres
       - SPRING_FLYWAY_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
@@ -85,6 +83,21 @@ services:
     # The command now runs correctly under the new entrypoint
     command:
       - "tail -f /dev/null"
+  # 5. Email Service
+  email-service:
+    build: ./email-service
+    container_name: email-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SERVER_PORT=8081
+    depends_on:
+      rabbitmq:
+        condition: service_healthy # Wait for RabbitMQ to be healthy
+    networks:
+      - shopping-network
+
 # Define the named volume at the top level
 volumes:
   postgres_data:

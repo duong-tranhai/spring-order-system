@@ -12,7 +12,15 @@
 
     <artifactId>common-dtos</artifactId>
     <name>common-dtos</name>
+    <version>0.0.2-SNAPSHOT</version>
     <description>Shared DTOs for inter-service communication</description>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 
     <!-- This module has no dependencies of its own, it only provides classes -->
 

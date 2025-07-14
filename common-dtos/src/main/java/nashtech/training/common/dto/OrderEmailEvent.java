@@ -1,4 +1,4 @@
-package nashtech.training.ordersystem.event;
+package nashtech.training.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,4 +13,3 @@ public class OrderEmailEvent {
     private String orderId;
     private String status;
 }
-

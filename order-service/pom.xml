@@ -83,6 +83,7 @@
         <dependency>
             <groupId>nashtech.training</groupId>
             <artifactId>common-dtos</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
         </dependency>
 
         <!-- External Libraries -->
