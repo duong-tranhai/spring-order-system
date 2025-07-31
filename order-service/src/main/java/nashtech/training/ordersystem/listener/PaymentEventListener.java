@@ -1,6 +1,7 @@
 package nashtech.training.ordersystem.listener;
 
 import nashtech.training.common.dto.PaymentStatusChangedEvent;
+import nashtech.training.common.util.OrderSystemConstants;
 import nashtech.training.ordersystem.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,7 @@ public class PaymentEventListener {
     }
 
     // This method will automatically be called when a message arrives in the queue
-    @RabbitListener(queues = "payment.succeeded.queue")
+    @RabbitListener(queues = OrderSystemConstants.RABBITMQ_PAYMENT_QUEUE_SUCCEEDED)
     public void handlePaymentSucceeded(PaymentStatusChangedEvent event) {
         logger.info("Received Payment Succeeded Event for orderId: {}", event.orderId());
 
@@ -29,7 +30,7 @@ public class PaymentEventListener {
         // emailService.sendOrderConfirmation(event.orderId());
     }
 
-    @RabbitListener(queues = "payment.failed.queue")
+    @RabbitListener(queues = OrderSystemConstants.RABBITMQ_PAYMENT_QUEUE_FAILED)
     public void handlePaymentFailed(PaymentStatusChangedEvent event) {
         logger.warn("Received Payment Failed Event for orderId: {}. Reason: {}", event.orderId(), event.failureMessage());
 

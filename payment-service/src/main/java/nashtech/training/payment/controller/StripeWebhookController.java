@@ -7,6 +7,7 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.StripeObject;
 import com.stripe.net.Webhook;
 import nashtech.training.common.dto.PaymentStatusChangedEvent;
+import nashtech.training.common.util.OrderSystemConstants;
 import nashtech.training.payment.dto.request.CreatePaymentRequest;
 import nashtech.training.payment.service.PaymentService;
 import org.slf4j.Logger;
@@ -79,7 +80,10 @@ public class StripeWebhookController {
                         null
                 );
 
-                rabbitTemplate.convertAndSend("payment.exchange", "payment.succeeded.routingkey", successEvent);
+                rabbitTemplate.convertAndSend(
+                        OrderSystemConstants.RABBITMQ_PAYMENT_EXCHANGE,
+                        OrderSystemConstants.RABBITMQ_PAYMENT_ROUTINGKEY_SUCCEEDED,
+                        successEvent);
                 break;
 
             case "payment_intent.payment_failed":
@@ -95,7 +99,9 @@ public class StripeWebhookController {
                         failedPaymentIntent.getLastPaymentError().getMessage()
                 );
 
-                rabbitTemplate.convertAndSend("payment.exchange", "payment.failed.routingkey", failedEvent);
+                rabbitTemplate.convertAndSend(OrderSystemConstants.RABBITMQ_PAYMENT_EXCHANGE,
+                        OrderSystemConstants.RABBITMQ_PAYMENT_ROUTINGKEY_FAILED,
+                        failedEvent);
                 break;
 
             default:

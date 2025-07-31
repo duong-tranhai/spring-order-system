@@ -2,6 +2,7 @@ package nashtech.training.ordersystem.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import nashtech.training.common.dto.OrderEmailEvent;
+import nashtech.training.common.util.OrderSystemConstants;
 import nashtech.training.ordersystem.client.PaymentClient;
 import nashtech.training.ordersystem.dto.request.order.CreateOrderDTO;
 import nashtech.training.ordersystem.dto.request.order.OrderItemRequestDTO;
@@ -291,8 +292,8 @@ public class OrderServiceImpl implements OrderService {
         );
 
         rabbitTemplate.convertAndSend(
-                "email.exchange",           // same as your configured exchange
-                "email.send.routingkey",      // routing key for email
+                OrderSystemConstants.RABBITMQ_EMAIL_EXCHANGE,
+                OrderSystemConstants.RABBITMQ_EMAIL_ROUTINGKEY,
                 emailEvent
         );
     }

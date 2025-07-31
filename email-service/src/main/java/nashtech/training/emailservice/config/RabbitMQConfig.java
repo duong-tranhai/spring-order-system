@@ -1,18 +1,18 @@
 package nashtech.training.emailservice.config;
 
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import nashtech.training.common.util.OrderSystemConstants;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @EnableRabbit
 public class RabbitMQConfig {
-    public static final String EXCHANGE = "email.exchange";
-    public static final String ROUTING_KEY = "email.send.routingkey";
-    public static final String QUEUE = "email.queue";
 
     @Bean
     public Jackson2JsonMessageConverter jacksonConverter() {
@@ -20,18 +20,17 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public DirectExchange emailExchange() {
-        return new DirectExchange(EXCHANGE);
+    public TopicExchange emailExchange() {
+        return new TopicExchange(OrderSystemConstants.RABBITMQ_EMAIL_EXCHANGE);
     }
 
     @Bean
     public Queue emailQueue() {
-        return new Queue(QUEUE);
+        return new Queue(OrderSystemConstants.RABBITMQ_EMAIL_QUEUE);
     }
 
     @Bean
-    public Binding emailBinding(Queue emailQueue, DirectExchange emailExchange) {
-        return BindingBuilder.bind(emailQueue).to(emailExchange).with(ROUTING_KEY);
+    public Binding emailBinding(Queue emailQueue, TopicExchange emailExchange) {
+        return BindingBuilder.bind(emailQueue).to(emailExchange).with(OrderSystemConstants.RABBITMQ_EMAIL_ROUTINGKEY);
     }
 }
-
