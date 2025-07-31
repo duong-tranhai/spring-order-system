@@ -19,12 +19,13 @@ public class EmailEventListener {
     @RabbitListener(queues = OrderSystemConstants.RABBITMQ_EMAIL_QUEUE)
     public void handleOrderEmailNotification(OrderEmailEvent event) {
         Map<String, Object> variables = Map.of(
-                "orderId", event.getOrderId(),
-                "status", event.getStatus()
+                "customerName", event.getReceiver(),
+                "message", "Good",
+                "orderStatus", event.getStatus()
         );
 
         emailService.sendOrderStatusEmail(
-                event.getTo(),
+                event.getReceiver(),
                 event.getSubject(),
                 variables
         );

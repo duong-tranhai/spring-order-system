@@ -1,6 +1,7 @@
 package nashtech.training.emailservice.service.impl;
 
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import nashtech.training.emailservice.service.EmailNotificationService;
@@ -33,16 +34,18 @@ public class EmailNotificationServiceImpl implements EmailNotificationService {
         try {
             MimeMessage mimeMessage = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "UTF-8");
+            helper.setFrom(new InternetAddress("anhnguyenviet2732005@gmail.com"));
             helper.setTo(to);
             helper.setSubject(subject);
 
             Context context = new Context();
             context.setVariables(variables);
-            String htmlContent = templateEngine.process("templates.email/order-status.html", context);
+            String htmlContent = templateEngine.process("email/order-status.html", context);
 
             helper.setText(htmlContent, true); // true = HTML
 
             mailSender.send(mimeMessage);
+            System.out.println("Done sending email");
         } catch (MessagingException e) {
             System.err.println("Failed to send HTML email: " + e.getMessage());
         }
